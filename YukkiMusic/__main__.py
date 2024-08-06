@@ -21,7 +21,6 @@ from YukkiMusic.core.call import Yukki
 from YukkiMusic.plugins import ALL_MODULES
 from YukkiMusic.utils.database import get_banned_users, get_gbanned
 
-loop = asyncio.get_event_loop()
 
 
 async def init():
@@ -77,5 +76,5 @@ async def init():
 
 
 if __name__ == "__main__":
-    loop.run_until_complete(init())
+    asyncio.get_event_loop().run_until_complete(init())
     LOGGER("YukkiMusic").info("Stopping XYukki ! GoodBye")
