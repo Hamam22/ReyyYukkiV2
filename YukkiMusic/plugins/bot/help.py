@@ -31,7 +31,6 @@ HELP_COMMAND = get_command("HELP_COMMAND")
 @app.on_message(
     filters.command(HELP_COMMAND)
     & filters.private
-    & ~filters.edited
     & ~BANNED_USERS
 )
 @app.on_callback_query(
