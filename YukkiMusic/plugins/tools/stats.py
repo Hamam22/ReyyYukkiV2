@@ -1,11 +1,3 @@
-#
-# Copyright (C) 2021-2022 by TeamYukki@Github, < https://github.com/TeamYukki >.
-#
-# This file is part of < https://github.com/TeamYukki/YukkiMusicBot > project,
-# and is released under the "GNU v3.0 License Agreement".
-# Please see < https://github.com/TeamYukki/YukkiMusicBot/blob/master/LICENSE >
-#
-# All rights reserved.
 
 import asyncio
 import platform
@@ -21,17 +13,17 @@ from pytgcalls.__version__ import __version__ as pytgver
 import config
 from config import BANNED_USERS, MUSIC_BOT_NAME
 from strings import get_command
-from YukkiMusic import YouTube, app
-from YukkiMusic.core.userbot import assistants
-from YukkiMusic.misc import SUDOERS, pymongodb
-from YukkiMusic.plugins import ALL_MODULES
-from YukkiMusic.utils.database import (get_global_tops,
+from AikaMusic import YouTube, app
+from AikaMusic.core.userbot import assistants
+from AikaMusic.misc import SUDOERS, pymongodb
+from AikaMusic.plugins import ALL_MODULES
+from AikaMusic.utils.database import (get_global_tops,
                                        get_particulars, get_queries,
                                        get_served_chats,
                                        get_served_users, get_sudoers,
                                        get_top_chats, get_topp_users)
-from YukkiMusic.utils.decorators.language import language, languageCB
-from YukkiMusic.utils.inline.stats import (back_stats_buttons,
+from AikaMusic.utils.decorators.language import language, languageCB
+from AikaMusic.utils.inline.stats import (back_stats_buttons,
                                            back_stats_markup,
                                            get_stats_markup,
                                            overallback_stats_markup,
@@ -48,7 +40,6 @@ STATS_COMMAND = get_command("STATS_COMMAND")
 @app.on_message(
     filters.command(STATS_COMMAND)
     & filters.group
-    & ~filters.edited
     & ~BANNED_USERS
 )
 @language
@@ -66,7 +57,6 @@ async def stats_global(client, message: Message, _):
 @app.on_message(
     filters.command(GSTATS_COMMAND)
     & filters.group
-    & ~filters.edited
     & ~BANNED_USERS
 )
 @language
@@ -115,7 +105,7 @@ async def gstats_global(client, message: Message, _):
         vidid,
     ) = await YouTube.details(videoid, True)
     title = title.title()
-    final = f"Lagu Paling Banyak Diputar di {MUSIC_BOT_NAME}\n\n**Title:** {title}\n\nPlayed** {co} **times"
+    final = f"Top Most Played Track on {MUSIC_BOT_NAME}\n\n**Title:** {title}\n\nPlayed** {co} **times"
     upl = get_stats_markup(
         _, True if message.from_user.id in SUDOERS else False
     )
@@ -472,3 +462,11 @@ async def back_buttons(client, CallbackQuery, _):
                 caption=_["gstats_11"].format(config.MUSIC_BOT_NAME),
                 reply_markup=upl,
             )
+
+
+@app.on_message(filters.command("mstats", [".", "/", "!"]) & SUDOERS)
+async def mstats(_, message: Message):
+    cht = len(await get_served_chats())
+    usr = len(await get_served_users())
+    await app.send_message(message.chat.id, 
+        f"📊 **Current Stats:**\n\n• **Users:** `{usr}`\n• **Groups:** `{cht}`")
