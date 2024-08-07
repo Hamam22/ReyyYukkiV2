@@ -1,12 +1,11 @@
 from datetime import datetime
 from pymongo import MongoClient
 from pyrogram import filters
-from YukkiMusic.utils.database import *
+from YukkiMusic.utils.database import get_latest_bug_message_id, save_bug_message_id
 from YukkiMusic.utils.decorators.admins import *
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
 from config import OWNER_ID as owner_id
 from YukkiMusic import app
-
 
 # Fungsi untuk mendapatkan konten pesan setelah perintah
 def content(msg: Message) -> [None, str]:
@@ -102,8 +101,8 @@ async def reply_bug(_, query: CallbackQuery):
     if not is_admin.privileges.can_post_messages:
         await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
     else:
-        # Ambil ID pesan bug yang benar dari MongoDB
-        bug_message_id = get_latest_bug_message_id()
+        # Pastikan untuk menunggu pemanggilan fungsi async
+        bug_message_id = await get_latest_bug_message_id()
         if bug_message_id:
             try:
                 await app.send_message(
