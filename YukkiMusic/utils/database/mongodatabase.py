@@ -23,6 +23,19 @@ usersdb = mongodb.tgusersdb
 playlistdb = mongodb.playlist
 blockeddb = mongodb.blockedusers
 privatedb = mongodb.privatechats
+bugdb = mongodb.bugchatusers
+
+
+#bugs
+
+def save_bug_message_id(bug_message_id: int):
+    bugdb.insert_one({"bug_message_id": bug_message_id})
+
+def get_latest_bug_message_id():
+    latest = bugdb.find_one(sort=[("timestamp", -1)])
+    if latest:
+        return latest["bug_message_id"]
+    return None
     
 
 # Playlist
