@@ -6,7 +6,6 @@ from YukkiMusic.utils.decorators.admins import *
 from config import OWNER_ID as owner_id
 from YukkiMusic import app
 
-# Fungsi untuk mendapatkan konten pesan setelah perintah
 def content(msg: Message) -> [None, str]:
     text_to_return = msg.text
     if text_to_return and " " in text_to_return:
@@ -69,12 +68,14 @@ async def bugs(_, msg: Message):
                     )
                 )
 
-                # Debugging: periksa objek sent_message
+                # Tambahkan logging untuk memeriksa objek sent_message
                 print(f"Sent message object: {sent_message}")
 
                 # Pastikan ID tersedia
                 if hasattr(sent_message, 'id'):
-                    await save_bug_message_id(sent_message.id)  # Tunggu hingga selesai
+                    # Simpan ID pesan dan verifikasi penyimpanan
+                    await save_bug_message_id(sent_message.id)
+                    print(f"Bug message ID saved: {sent_message.id}")  # Debugging
                     await msg.reply_text(
                         f"<b>Laporan Bug: {bugs}</b>\n\n"
                         "<b>Bug berhasil dilaporkan ke grup dukungan!</b>",
@@ -105,6 +106,7 @@ async def reply_bug(_, query: CallbackQuery):
     else:
         try:
             bug_message_id = await get_latest_bug_message_id()
+            print(f"Bug message ID retrieved from database: {bug_message_id}")  # Debugging
             if bug_message_id:
                 await app.send_message(
                     query.message.chat.id,
