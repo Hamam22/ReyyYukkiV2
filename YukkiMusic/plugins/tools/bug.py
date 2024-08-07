@@ -7,6 +7,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, 
 from config import OWNER_ID as owner_id
 from YukkiMusic import app
 
+
 # Fungsi untuk mendapatkan konten pesan setelah perintah
 def content(msg: Message) -> [None, str]:
     text_to_return = msg.text
@@ -16,6 +17,7 @@ def content(msg: Message) -> [None, str]:
         except IndexError:
             return None
     return None
+
 
 @app.on_message(filters.command("bug"))
 async def bugs(_, msg: Message):
@@ -68,7 +70,7 @@ async def bugs(_, msg: Message):
                     ]
                 )
             )
-            
+
             # Debugging: periksa objek sent_message
             print(f"Sent message object: {sent_message}")
 
@@ -87,6 +89,7 @@ async def bugs(_, msg: Message):
             )
         else:
             await msg.reply_text("<b>Tidak ada bug untuk dilaporkan!</b>")
+
 @app.on_callback_query(filters.regex("close_send_photo"))
 async def close_send_photo(_, query: CallbackQuery):
     is_admin = await app.get_chat_member(query.message.chat.id, query.from_user.id)
@@ -102,7 +105,7 @@ async def reply_bug(_, query: CallbackQuery):
         await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
     else:
         # Ambil ID pesan bug yang benar dari MongoDB
-        bug_message_id = get_latest_bug_message_id()
+        bug_message_id = await get_latest_bug_message_id()  # Gunakan await
         if bug_message_id:
             try:
                 await app.send_message(
