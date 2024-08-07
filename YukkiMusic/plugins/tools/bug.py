@@ -68,8 +68,15 @@ async def bugs(_, msg: Message):
                     ]
                 )
             )
-            # Simpan ID pesan bug
-            save_bug_message_id(sent_message.message_id)
+            
+            # Debugging: periksa objek sent_message
+            print(f"Sent message object: {sent_message}")
+
+            # Jika message_id tidak ditemukan, periksa atribut yang tersedia
+            if hasattr(sent_message, 'message_id'):
+                save_bug_message_id(sent_message.message_id)
+            else:
+                await msg.reply_text("ID pesan tidak ditemukan dalam objek pesan yang dikembalikan.")
 
             await msg.reply_text(
                 f"<b>Laporan Bug: {bugs}</b>\n\n"
@@ -80,7 +87,6 @@ async def bugs(_, msg: Message):
             )
         else:
             await msg.reply_text("<b>Tidak ada bug untuk dilaporkan!</b>")
-
 @app.on_callback_query(filters.regex("close_send_photo"))
 async def close_send_photo(_, query: CallbackQuery):
     is_admin = await app.get_chat_member(query.message.chat.id, query.from_user.id)
