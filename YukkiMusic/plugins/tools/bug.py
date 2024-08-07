@@ -108,9 +108,10 @@ async def reply_bug(c, callback_query: CallbackQuery):
         await callback_query.answer("Format data tidak valid.")
         return
 
-    user_id = int(callback_query.from_user.id)
     try:
         original_bug_report_id = int(data[1])
+        user_id = int(callback_query.from_user.id)
+        
         # Kirim pesan balasan
         await c.send_message(
             user_id,
