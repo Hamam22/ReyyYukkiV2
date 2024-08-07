@@ -179,7 +179,7 @@ def AdminCtual(func):
             return await message.reply_text("Perintah ini hanya dapat digunakan di grup.")
         
         chat_member = await cli.get_chat_member(message.chat.id, message.from_user.id)
-        if chat_member.status not in [ChatMember.CREATOR, ChatMember.ADMINISTRATOR]:
+        if chat_member.status not in [ChatMember.OWNER, ChatMember.ADMINISTRATOR]:
             return await message.reply_text("Kamu harus menjadi admin untuk menggunakan perintah ini.")
         
         return await func(cli, message, *args, **kwargs)
