@@ -23,7 +23,35 @@ usersdb = mongodb.tgusersdb
 playlistdb = mongodb.playlist
 blockeddb = mongodb.blockedusers
 privatedb = mongodb.privatechats
+muted  = mongodb.muteusers
 
+
+#mute
+
+
+async def mute_user_in_group(group_id, user_id, muted_by_id, muted_by_name):
+    await mutedb.update_one(
+        {'group_id': group_id},
+        {'$addToSet': {'muted_users': {'user_id': user_id, 'muted_by': {'id': muted_by_id, 'name': muted_by_name}}}},
+        upsert=True
+    )
+
+async def unmute_user_in_group(group_id, user_id):
+    await mutedb.update_one(
+        {'group_id': group_id},
+        {'$pull': {'muted_users': {'user_id': user_id}}}
+    )
+
+async def get_muted_users_in_group(group_id):
+    doc = await mutedb.find_one({'group_id': group_id})
+    if doc:
+        return doc.get('muted_users', [])
+    return []
+
+async def clear_muted_users_in_group(group_id):
+    await mutedb.delete_one({'group_id': group_id})
+    
+    
 
 # Playlist
 
