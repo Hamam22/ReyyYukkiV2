@@ -99,22 +99,18 @@ async def close_send_photo(_, query: CallbackQuery):
         await query.message.delete()
 
 @app.on_callback_query(filters.regex("reply_bug"))
-async def reply_bug(_, query: CallbackQuery):
-    is_admin = await app.get_chat_member(query.message.chat.id, query.from_user.id)
-    if not is_admin.privileges.can_post_messages:
-        await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
-    else:
-        try:
-            bug_message_id = await get_latest_bug_message_id()
-            print(f"Bug message ID retrieved from database: {bug_message_id}")  # Debugging
-            if bug_message_id:
-                await app.send_message(
-                    query.message.chat.id,
-                    text="Balasan untuk laporan bug.",
-                    reply_to_message_id=bug_message_id
-                )
-                await query.answer("Balasan berhasil dikirim.")
-            else:
-                await query.answer("ID pesan bug tidak ditemukan.", show_alert=True)
-        except Exception as e:
-            await query.answer(f"Terjadi kesalahan: {e}", show_alert=True)
+async def reply_bug(c, callback_query: CallbackQuery):
+    user_id = int(callback_query.from_user.id)
+    original_bug_report_id = int(callback_query.data.split()[1])  # Pastikan format data sesuai
+
+    # Kirim pesan balasan
+    try:
+        await c.send_message(
+            user_id,
+            "Silahkan kirimkan balasan Anda.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Batal", callback_data=f"batal {user_id}")]])
+        )
+        await callback_query.answer("Balasan berhasil dikirim. Tunggu balasan Anda.")
+    except Exception as e:
+        print(f"Error: {e}")
+        await callback_query.answer("Gagal mengirim balasan.")
