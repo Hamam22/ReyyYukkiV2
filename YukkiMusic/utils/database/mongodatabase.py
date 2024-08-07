@@ -23,7 +23,7 @@ usersdb = mongodb.tgusersdb
 playlistdb = mongodb.playlist
 blockeddb = mongodb.blockedusers
 privatedb = mongodb.privatechats
-muted  = mongodb.muteusers
+mutedb  = mongodb.muteusers
 
 
 #mute
