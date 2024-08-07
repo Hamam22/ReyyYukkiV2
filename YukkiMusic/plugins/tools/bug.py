@@ -8,15 +8,12 @@ from YukkiMusic import app
 def content(msg: Message) -> [None, str]:
     text_to_return = msg.text
 
-    if msg.text is None:
-        return None
-    if " " in text_to_return:
+    if text_to_return and " " in text_to_return:
         try:
-            return msg.text.split(None, 1)[1]
+            return text_to_return.split(None, 1)[1]
         except IndexError:
             return None
-    else:
-        return None
+    return None
 
 
 @app.on_message(filters.command("bug"))
@@ -28,9 +25,7 @@ async def bugs(_, msg: Message):
 
     bugs = content(msg)
     user_id = msg.from_user.id
-    mention = (
-        "[" + msg.from_user.first_name + "](tg://user?id=" + str(msg.from_user.id) + ")"
-    )
+    mention = f"[{msg.from_user.first_name}](tg://user?id={user_id})"
     datetimes_fmt = "%d-%m-%Y"
     datetimes = datetime.utcnow().strftime(datetimes_fmt)
 
@@ -41,7 +36,7 @@ async def bugs(_, msg: Message):
 **ID Pengguna: ** **{user_id}**
 **Chat: ** **{chat_username}**
 
-**Bug: ** **{bugs}**
+**Bug: ** **{bugs if bugs else 'Tidak ada deskripsi bug.'}**
 
 **Waktu: ** **{datetimes}**"""
 
@@ -54,10 +49,9 @@ async def bugs(_, msg: Message):
             await msg.reply_text(
                 "<b>Apakah kamu bercanda? Kamu adalah pemilik bot ini.</b>",
             )
-            return
         else:
             await msg.reply_text("Tidak ada bug untuk dilaporkan.")
-    elif user_id != owner_id:
+    else:
         if bugs:
             await msg.reply_text(
                 f"<b>Laporan Bug: {bugs}</b>\n\n"
@@ -67,7 +61,7 @@ async def bugs(_, msg: Message):
                 ),
             )
             await app.send_photo(
-                -1002024677280,
+                -1001665425160,
                 photo="https://telegra.ph/file/2c6d1a6f78eba6199933a.jpg",
                 caption=f"{bug_report}",
                 reply_markup=InlineKeyboardMarkup(
@@ -82,9 +76,7 @@ async def bugs(_, msg: Message):
                 ),
             )
         else:
-            await msg.reply_text(
-                f"<b>Tidak ada bug untuk dilaporkan!</b>",
-            )
+            await msg.reply_text("<b>Tidak ada bug untuk dilaporkan!</b>")
 
 
 @app.on_callback_query(filters.regex("close_send_photo"))
