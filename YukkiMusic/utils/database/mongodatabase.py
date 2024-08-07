@@ -23,18 +23,17 @@ usersdb = mongodb.tgusersdb
 playlistdb = mongodb.playlist
 blockeddb = mongodb.blockedusers
 privatedb = mongodb.privatechats
-bugdb = mongodb.bugchatusers
+bugsdb = mongodb.bugchatusers
 
 
-def save_bug_message_id(bug_message_id: int):
-    bugdb.insert_one({"bug_message_id": bug_message_id})
-
-# Fungsi untuk mengambil ID pesan bug terbaru dari MongoDB
-def get_latest_bug_message_id():
-    latest = bugdb.find_one(sort=[("timestamp", -1)])
+async def get_latest_bug_message_id():
+    latest = await bugsdb.find_one(sort=[("timestamp", -1)])
     if latest:
         return latest["bug_message_id"]
     return None
+
+async def save_bug_message_id(message_id):
+    await bugsdb.insert_one({"bug_message_id": message_id, "timestamp": datetime.utcnow()})
 
 # Playlist
 
