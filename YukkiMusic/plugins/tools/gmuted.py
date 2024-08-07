@@ -9,7 +9,7 @@ from config import BANNED_USERS
 
 @app.on_message(filters.command("pl") & filters.group & ~(BANNED_USERS))
 @AdminActual
-async def mute_handler(app: Bot, message: Message):
+async def mute_handler(_, message: Message):
     if not message.reply_to_message and len(message.command) < 2:
         return await message.reply_text("Berikan saya ID atau nama pengguna yang ingin di mute.")
 
@@ -57,7 +57,7 @@ async def mute_handler(app: Bot, message: Message):
 
 @app.on_message(filters.command("unpl") & filters.group & ~(BANNED_USERS))
 @AdminActual
-async def unmute_handler(app: Bot, message: Message):
+async def unmute_handler(_, message: Message):
     if not message.reply_to_message and len(message.command) < 2:
         return await message.reply_text("Berikan saya ID atau nama pengguna yang ingin di unmute.")
 
@@ -105,7 +105,7 @@ async def unmute_handler(app: Bot, message: Message):
 
 @app.on_message(filters.command("listpl") & filters.group & ~(BANNED_USERS))
 @AdminActual
-async def muted(app: Bot, message: Message):
+async def muted(_, message: Message):
     group_id = message.chat.id
     kons = await get_muted_users_in_group(group_id)
 
@@ -141,7 +141,7 @@ async def muted(app: Bot, message: Message):
 
 @app.on_message(filters.command("clearpl") & filters.group & ~(BANNED_USERS))
 @AdminActual
-async def clear_muted(app: Bot, message: Message):
+async def clear_muted(_, message: Message):
     group_id = message.chat.id
     muted_users = await get_muted_users_in_group(group_id)
 
@@ -152,7 +152,7 @@ async def clear_muted(app: Bot, message: Message):
     await message.reply("**Semua pengguna yang di mute telah dihapus untuk grup ini.**")
 
 @app.on_message(filters.group & ~filters.private)
-async def delete_muted_messages(app: Bot, message: Message):
+async def delete_muted_messages(_, message: Message):
     if message.from_user is None:
         return
 
