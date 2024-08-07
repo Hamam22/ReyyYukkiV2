@@ -8,6 +8,7 @@
 # All rights reserved.
 
 from typing import Dict, List, Union
+from datetime import datetime
 
 from YukkiMusic.core.mongo import mongodb
 
@@ -27,14 +28,14 @@ bugsdb = mongodb.bugchatusers
 
 
 async def get_latest_bug_message_id():
-    latest = await bugsdb.find_one(sort=[("timestamp", -1)])
+    latest = await bugs_collection.find_one(sort=[("timestamp", -1)])
     if latest:
         return latest["bug_message_id"]
     return None
 
 async def save_bug_message_id(message_id):
-    await bugsdb.insert_one({"bug_message_id": message_id, "timestamp": datetime.utcnow()})
-
+    await bugs_collection.insert_one({"bug_message_id": message_id, "timestamp": datetime.utcnow()})
+    
 # Playlist
 
 
