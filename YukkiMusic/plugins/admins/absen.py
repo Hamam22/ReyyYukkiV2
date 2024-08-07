@@ -3,13 +3,13 @@ import pytz
 from pyrogram import filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from YukkiMusic import app
-from YukkiMusic.utils.decorators.admins import AdminActual
+from YukkiMusic.utils.decorators.admins import AdminCtual
 from config import BANNED_USERS
 
 absen_data = {}
 
 @app.on_message(filters.command("absen") & filters.group & ~(BANNED_USERS))
-@AdminActual
+@AdminCtual
 async def absensi_menu(client, message: Message, _):
     keyboard = InlineKeyboardMarkup(
         [
