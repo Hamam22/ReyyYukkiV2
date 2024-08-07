@@ -53,36 +53,39 @@ async def bugs(_, msg: Message):
             await msg.reply_text("Tidak ada bug untuk dilaporkan.")
     else:
         if bugs:
-            sent_message = await app.send_photo(
-                -1001665425160,  # ID chat grup dukungan
-                photo="https://telegra.ph/file/2c6d1a6f78eba6199933a.jpg",
-                caption=f"{bug_report}",
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [InlineKeyboardButton("Lihat Bug", url=f"{msg.link}")],
-                        [
-                            InlineKeyboardButton("Tutup", callback_data="close_send_photo"),
-                            InlineKeyboardButton("Balas", callback_data="reply_bug")
-                        ],
-                    ]
-                )
-            )
-
-            # Debugging: periksa objek sent_message
-            print(f"Sent message object: {sent_message}")
-
-            # Pastikan ID tersedia
-            if hasattr(sent_message, 'id'):
-                await save_bug_message_id(sent_message.id)  # Tunggu hingga selesai
-                await msg.reply_text(
-                    f"<b>Laporan Bug: {bugs}</b>\n\n"
-                    "<b>Bug berhasil dilaporkan ke grup dukungan!</b>",
+            try:
+                sent_message = await app.send_photo(
+                    -1001665425160,  # ID chat grup dukungan
+                    photo="https://telegra.ph/file/2c6d1a6f78eba6199933a.jpg",
+                    caption=f"{bug_report}",
                     reply_markup=InlineKeyboardMarkup(
-                        [[InlineKeyboardButton("Tutup", callback_data="close_data")]]
-                    ),
+                        [
+                            [InlineKeyboardButton("Lihat Bug", url=f"{msg.link}")],
+                            [
+                                InlineKeyboardButton("Tutup", callback_data="close_send_photo"),
+                                InlineKeyboardButton("Balas", callback_data="reply_bug")
+                            ],
+                        ]
+                    )
                 )
-            else:
-                await msg.reply_text("ID pesan tidak ditemukan dalam objek pesan yang dikembalikan.")
+
+                # Debugging: periksa objek sent_message
+                print(f"Sent message object: {sent_message}")
+
+                # Pastikan ID tersedia
+                if hasattr(sent_message, 'id'):
+                    await save_bug_message_id(sent_message.id)  # Tunggu hingga selesai
+                    await msg.reply_text(
+                        f"<b>Laporan Bug: {bugs}</b>\n\n"
+                        "<b>Bug berhasil dilaporkan ke grup dukungan!</b>",
+                        reply_markup=InlineKeyboardMarkup(
+                            [[InlineKeyboardButton("Tutup", callback_data="close_data")]]
+                        ),
+                    )
+                else:
+                    await msg.reply_text("ID pesan tidak ditemukan dalam objek pesan yang dikembalikan.")
+            except Exception as e:
+                await msg.reply_text(f"Terjadi kesalahan saat mengirim laporan bug: {e}")
         else:
             await msg.reply_text("<b>Tidak ada bug untuk dilaporkan!</b>")
 
@@ -100,17 +103,16 @@ async def reply_bug(_, query: CallbackQuery):
     if not is_admin.privileges.can_post_messages:
         await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
     else:
-        # Pastikan untuk menunggu pemanggilan fungsi async
-        bug_message_id = await get_latest_bug_message_id()
-        if bug_message_id:
-            try:
+        try:
+            bug_message_id = await get_latest_bug_message_id()
+            if bug_message_id:
                 await app.send_message(
                     query.message.chat.id,
                     text="Balasan untuk laporan bug.",
                     reply_to_message_id=bug_message_id
                 )
                 await query.answer("Balasan berhasil dikirim.")
-            except Exception as e:
-                await query.answer(f"Terjadi kesalahan: {e}", show_alert=True)
-        else:
-            await query.answer("ID pesan bug tidak ditemukan.", show_alert=True)
+            else:
+                await query.answer("ID pesan bug tidak ditemukan.", show_alert=True)
+        except Exception as e:
+            await query.answer(f"Terjadi kesalahan: {e}", show_alert=True)
