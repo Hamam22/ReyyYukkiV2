@@ -1,9 +1,8 @@
 from datetime import datetime
-from pymongo import MongoClient
 from pyrogram import filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
 from YukkiMusic.utils.database import get_latest_bug_message_id, save_bug_message_id
 from YukkiMusic.utils.decorators.admins import *
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
 from config import OWNER_ID as owner_id
 from YukkiMusic import app
 
@@ -86,3 +85,32 @@ async def bugs(_, msg: Message):
                 await msg.reply_text("ID pesan tidak ditemukan dalam objek pesan yang dikembalikan.")
         else:
             await msg.reply_text("<b>Tidak ada bug untuk dilaporkan!</b>")
+
+@app.on_callback_query(filters.regex("close_send_photo"))
+async def close_send_photo(_, query: CallbackQuery):
+    is_admin = await app.get_chat_member(query.message.chat.id, query.from_user.id)
+    if not is_admin.privileges.can_delete_messages:
+        await query.answer("Anda tidak memiliki hak untuk menutup ini.", show_alert=True)
+    else:
+        await query.message.delete()
+
+@app.on_callback_query(filters.regex("reply_bug"))
+async def reply_bug(_, query: CallbackQuery):
+    is_admin = await app.get_chat_member(query.message.chat.id, query.from_user.id)
+    if not is_admin.privileges.can_post_messages:
+        await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
+    else:
+        # Pastikan untuk menunggu pemanggilan fungsi async
+        bug_message_id = await get_latest_bug_message_id()
+        if bug_message_id:
+            try:
+                await app.send_message(
+                    query.message.chat.id,
+                    text="Balasan untuk laporan bug.",
+                    reply_to_message_id=bug_message_id
+                )
+                await query.answer("Balasan berhasil dikirim.")
+            except Exception as e:
+                await query.answer(f"Terjadi kesalahan: {e}", show_alert=True)
+        else:
+            await query.answer("ID pesan bug tidak ditemukan.", show_alert=True)
