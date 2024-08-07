@@ -4,11 +4,11 @@ from pyrogram import filters
 from pyrogram.types import Message
 from YukkiMusic.utils.database import *
 from pyrogram.errors import FloodWait, PeerIdInvalid
-from YukkiMusic.utils.decorators.admins import AdminActual
+from YukkiMusic.utils.decorators.admins import AdminCtual
 from config import BANNED_USERS
 
 @app.on_message(filters.command("pl") & filters.group & ~(BANNED_USERS))
-@AdminActual
+@AdminCtual
 async def mute_handler(cli, message: Message):
     if not message.reply_to_message and len(message.command) < 2:
         return await message.reply_text("Berikan saya ID atau nama pengguna yang ingin di mute.")
@@ -56,7 +56,7 @@ async def mute_handler(cli, message: Message):
         await xxnx.edit(f"**Gagal mute pengguna:** `{e}`")
 
 @app.on_message(filters.command("unpl") & filters.group & ~(BANNED_USERS))
-@AdminActual
+@AdminCtual
 async def unmute_handler(cli, message: Message):
     if not message.reply_to_message and len(message.command) < 2:
         return await message.reply_text("Berikan saya ID atau nama pengguna yang ingin di unmute.")
@@ -104,7 +104,7 @@ async def unmute_handler(cli, message: Message):
         await xxnx.edit(f"**Gagal unmute pengguna:** `{e}`")
 
 @app.on_message(filters.command("listpl") & filters.group & ~(BANNED_USERS))
-@AdminActual
+@AdminCtual
 async def muted(cli, message: Message):
     group_id = message.chat.id
     kons = await get_muted_users_in_group(group_id)
@@ -140,7 +140,7 @@ async def muted(cli, message: Message):
     await resp.delete()
 
 @app.on_message(filters.command("clearpl") & filters.group & ~(BANNED_USERS))
-@AdminActual
+@AdminCtual
 async def clear_muted(cli, message: Message):
     group_id = message.chat.id
     muted_users = await get_muted_users_in_group(group_id)
@@ -152,7 +152,7 @@ async def clear_muted(cli, message: Message):
     await message.reply("**Semua pengguna yang di mute telah dihapus untuk grup ini.**")
 
 @app.on_message(filters.group & ~filters.private)
-@AdminActual
+@AdminCtual
 async def delete_muted_messages(cli, message: Message):
     if message.from_user is None:
         return
