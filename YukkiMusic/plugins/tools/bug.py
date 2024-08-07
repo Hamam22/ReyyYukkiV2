@@ -1,20 +1,18 @@
 from datetime import datetime
+from pymongo import MongoClient
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
 from config import OWNER_ID as owner_id
 from YukkiMusic import app
 
-
 def content(msg: Message) -> [None, str]:
     text_to_return = msg.text
-
     if text_to_return and " " in text_to_return:
         try:
             return text_to_return.split(None, 1)[1]
         except IndexError:
             return None
     return None
-
 
 @app.on_message(filters.command("bug"))
 async def bugs(_, msg: Message):
@@ -47,12 +45,29 @@ async def bugs(_, msg: Message):
     if user_id == owner_id:
         if bugs:
             await msg.reply_text(
-                "<b>Apakah kamu bercanda? Kamu adalah pemilik bot ini.</b>",
+                "<b>Apakah kamu bercanda? Kamu adalah pemilik bot ini.</b>"
             )
         else:
             await msg.reply_text("Tidak ada bug untuk dilaporkan.")
     else:
         if bugs:
+            sent_message = await app.send_photo(
+                -1001665425160,  # ID chat grup dukungan
+                photo="https://telegra.ph/file/2c6d1a6f78eba6199933a.jpg",
+                caption=f"{bug_report}",
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [InlineKeyboardButton("Lihat Bug", url=f"{msg.link}")],
+                        [
+                            InlineKeyboardButton("Tutup", callback_data="close_send_photo"),
+                            InlineKeyboardButton("Balas", callback_data="reply_bug")
+                        ],
+                    ]
+                )
+            )
+            # Simpan ID pesan bug
+            save_bug_message_id(sent_message.message_id)
+
             await msg.reply_text(
                 f"<b>Laporan Bug: {bugs}</b>\n\n"
                 "<b>Bug berhasil dilaporkan ke grup dukungan!</b>",
@@ -60,27 +75,8 @@ async def bugs(_, msg: Message):
                     [[InlineKeyboardButton("Tutup", callback_data="close_data")]]
                 ),
             )
-            await app.send_photo(
-                -1001665425160,
-                photo="https://telegra.ph/file/2c6d1a6f78eba6199933a.jpg",
-                caption=f"{bug_report}",
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [InlineKeyboardButton("Lihat Bug", url=f"{msg.link}")],
-                        [
-                            InlineKeyboardButton(
-                                "Tutup", callback_data="close_send_photo"
-                            ),
-                            InlineKeyboardButton(
-                                "Balas", callback_data="reply_bug"
-                            )
-                        ],
-                    ]
-                ),
-            )
         else:
             await msg.reply_text("<b>Tidak ada bug untuk dilaporkan!</b>")
-
 
 @app.on_callback_query(filters.regex("close_send_photo"))
 async def close_send_photo(_, query: CallbackQuery):
@@ -90,15 +86,14 @@ async def close_send_photo(_, query: CallbackQuery):
     else:
         await query.message.delete()
 
-
 @app.on_callback_query(filters.regex("reply_bug"))
 async def reply_bug(_, query: CallbackQuery):
     is_admin = await app.get_chat_member(query.message.chat.id, query.from_user.id)
     if not is_admin.privileges.can_post_messages:
         await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
     else:
-        # Misalnya, ID pesan bug disimpan dalam `query.message.reply_to_message_id` 
-        bug_message_id = query.message.reply_to_message_id
+        # Ambil ID pesan bug yang benar dari MongoDB
+        bug_message_id = get_latest_bug_message_id()
         if bug_message_id:
             try:
                 await app.send_message(
