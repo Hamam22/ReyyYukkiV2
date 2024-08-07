@@ -8,6 +8,7 @@ hachoir
 heroku3
 lyricsgenius
 motor
+pytz
 pillow==9.5.0
 psutil
 py-tgcalls==0.9.7
