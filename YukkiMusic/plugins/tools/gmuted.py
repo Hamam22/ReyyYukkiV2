@@ -173,4 +173,3 @@ async def delete_muted_messages(cli, message: Message):
             print(f"Pesan dari pengguna yang di-mute {user_id} di grup {group_name} ({group_id}) berhasil dihapus setelah menunggu {e.value} detik")
         except Exception as e:
             print(f"Tidak dapat menghapus pesan dari pengguna yang di-mute: {user_id} di grup {group_name} ({group_id}). Error: {e}")
-  
