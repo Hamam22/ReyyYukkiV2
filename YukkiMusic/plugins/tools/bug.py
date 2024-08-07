@@ -70,6 +70,9 @@ async def bugs(_, msg: Message):
                         [
                             InlineKeyboardButton(
                                 "Tutup", callback_data="close_send_photo"
+                            ),
+                            InlineKeyboardButton(
+                                "Balas", callback_data="reply_bug"
                             )
                         ],
                     ]
@@ -86,3 +89,13 @@ async def close_send_photo(_, query: CallbackQuery):
         await query.answer("Anda tidak memiliki hak untuk menutup ini.", show_alert=True)
     else:
         await query.message.delete()
+
+
+@app.on_callback_query(filters.regex("reply_bug"))
+async def reply_bug(_, query: CallbackQuery):
+    is_admin = await app.get_chat_member(query.message.chat.id, query.from_user.id)
+    if not is_admin.privileges.can_post_messages:
+        await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
+    else:
+        # This is where you would add the logic to prompt the admin or the bug reporter to reply
+        await query.message.reply_text("Silakan balas pesan ini dengan respons Anda.")
