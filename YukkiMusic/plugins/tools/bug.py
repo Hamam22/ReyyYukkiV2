@@ -97,15 +97,17 @@ async def reply_bug(_, query: CallbackQuery):
     if not is_admin.privileges.can_post_messages:
         await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
     else:
-        # ID pesan bug yang dilaporkan perlu disimpan sebelumnya
-        bug_message_id = ...  # Ambil ID pesan bug yang benar
-        try:
-            # Kirim balasan ke pesan bug
-            await app.send_message(
-                query.message.chat.id,
-                text="Balasan untuk laporan bug.",
-                reply_to_message_id=bug_message_id
-            )
-            await query.answer("Balasan berhasil dikirim.")
-        except Exception as e:
-            await query.answer(f"Terjadi kesalahan: {e}", show_alert=True)
+        # Misalnya, ID pesan bug disimpan dalam `query.message.reply_to_message_id` 
+        bug_message_id = query.message.reply_to_message_id
+        if bug_message_id:
+            try:
+                await app.send_message(
+                    query.message.chat.id,
+                    text="Balasan untuk laporan bug.",
+                    reply_to_message_id=bug_message_id
+                )
+                await query.answer("Balasan berhasil dikirim.")
+            except Exception as e:
+                await query.answer(f"Terjadi kesalahan: {e}", show_alert=True)
+        else:
+            await query.answer("ID pesan bug tidak ditemukan.", show_alert=True)
