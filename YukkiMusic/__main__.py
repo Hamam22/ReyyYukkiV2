@@ -20,7 +20,7 @@ from YukkiMusic import LOGGER, app, userbot
 from YukkiMusic.core.call import Yukki
 from YukkiMusic.plugins import ALL_MODULES
 from YukkiMusic.utils.database import get_banned_users, get_gbanned
-
+from YukkiMusic.plugins.tools.tagall import client
 
 
 async def init():
