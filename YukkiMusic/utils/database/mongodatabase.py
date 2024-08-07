@@ -29,14 +29,17 @@ bugdb = mongodb.bugchatusers
 #bugs
 
 def save_bug_message_id(bug_message_id: int):
-    bugdb.insert_one({"bug_message_id": bug_message_id})
+    bugdb.insert_one({
+        "bug_message_id": bug_message_id,
+        "timestamp": datetime.utcnow()
+    })
 
+# Fungsi untuk mendapatkan ID pesan bug terbaru dari MongoDB
 def get_latest_bug_message_id():
     latest = bugdb.find_one(sort=[("timestamp", -1)])
     if latest:
         return latest["bug_message_id"]
     return None
-    
 
 # Playlist
 
