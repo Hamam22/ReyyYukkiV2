@@ -100,17 +100,26 @@ async def close_send_photo(_, query: CallbackQuery):
 
 @app.on_callback_query(filters.regex("reply_bug"))
 async def reply_bug(c, callback_query: CallbackQuery):
-    user_id = int(callback_query.from_user.id)
-    original_bug_report_id = int(callback_query.data.split()[1])  # Pastikan format data sesuai
+    print(f"Callback data: {callback_query.data}")  # Debugging
 
-    # Kirim pesan balasan
+    data = callback_query.data.split()
+
+    if len(data) < 2:
+        await callback_query.answer("Format data tidak valid.")
+        return
+
+    user_id = int(callback_query.from_user.id)
     try:
+        original_bug_report_id = int(data[1])
+        # Kirim pesan balasan
         await c.send_message(
             user_id,
             "Silahkan kirimkan balasan Anda.",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Batal", callback_data=f"batal {user_id}")]])
         )
         await callback_query.answer("Balasan berhasil dikirim. Tunggu balasan Anda.")
+    except ValueError:
+        await callback_query.answer("ID laporan bug tidak valid.")
     except Exception as e:
         print(f"Error: {e}")
         await callback_query.answer("Gagal mengirim balasan.")
