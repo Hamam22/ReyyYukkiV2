@@ -35,11 +35,7 @@ from YukkiMusic.utils.inline import (help_pannel, private_panel,
 loop = asyncio.get_running_loop()
 
 
-@app.on_message(
-    filters.command(get_command("START_COMMAND"))
-    & filters.private
-    & ~BANNED_USERS
-)
+@app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
 async def start_comm(client, message: Message, _):
     await add_served_user(message.from_user.id)
@@ -187,11 +183,7 @@ async def start_comm(client, message: Message, _):
                 )
 
 
-@app.on_message(
-    filters.command(get_command("START_COMMAND"))
-    & filters.group
-    & ~BANNED_USERS
-)
+@app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def testbot(client, message: Message, _):
     out = start_pannel(_)
@@ -203,10 +195,7 @@ async def testbot(client, message: Message, _):
     )
 
 
-welcome_group = 2
-
-
-@app.on_message(filters.new_chat_members, group=welcome_group)
+@app.on_message(filters.new_chat_members, group=-2)
 async def welcome(client, message: Message):
     chat_id = message.chat.id
     if config.PRIVATE_BOT_MODE == str(True):
