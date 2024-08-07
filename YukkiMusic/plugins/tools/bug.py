@@ -97,5 +97,6 @@ async def reply_bug(_, query: CallbackQuery):
     if not is_admin.privileges.can_post_messages:
         await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
     else:
-        # This is where you would add the logic to prompt the admin or the bug reporter to reply
+        # Kirim pesan balasan di grup dukungan
+        # Anda mungkin perlu menyimpan ID pesan atau referensi lain untuk membalas pesan bug yang tepat
         await query.message.reply_text("Silakan balas pesan ini dengan respons Anda.")
