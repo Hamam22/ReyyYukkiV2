@@ -13,6 +13,7 @@ from config import adminlist
 from strings import get_string
 from YukkiMusic import app
 from YukkiMusic.misc import SUDOERS
+from pyrogram.types import ChatMember
 from YukkiMusic.utils.database import (get_authuser_names, get_cmode,
                                        get_lang, is_active_chat,
                                        is_commanddelete_on,
@@ -170,4 +171,17 @@ def ActualAdminCB(mystic):
                             return
         return await mystic(client, CallbackQuery, _)
 
+    return wrapper
+
+def AdminCtual(func):
+    async def wrapper(cli, message, *args, **kwargs):
+        if not message.chat:
+            return await message.reply_text("Perintah ini hanya dapat digunakan di grup.")
+        
+        chat_member = await cli.get_chat_member(message.chat.id, message.from_user.id)
+        if chat_member.status not in [ChatMember.CREATOR, ChatMember.ADMINISTRATOR]:
+            return await message.reply_text("Kamu harus menjadi admin untuk menggunakan perintah ini.")
+        
+        return await func(cli, message, *args, **kwargs)
+    
     return wrapper
