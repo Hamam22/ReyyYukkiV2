@@ -18,7 +18,6 @@ def content(msg: Message) -> [None, str]:
             return None
     return None
 
-
 @app.on_message(filters.command("bug"))
 async def bugs(_, msg: Message):
     if msg.chat.username:
@@ -74,19 +73,18 @@ async def bugs(_, msg: Message):
             # Debugging: periksa objek sent_message
             print(f"Sent message object: {sent_message}")
 
-            # Jika message_id tidak ditemukan, periksa atribut yang tersedia
-            if hasattr(sent_message, 'message_id'):
-                save_bug_message_id(sent_message.message_id)
+            # Pastikan ID tersedia
+            if hasattr(sent_message, 'id'):
+                save_bug_message_id(sent_message.id)
+                await msg.reply_text(
+                    f"<b>Laporan Bug: {bugs}</b>\n\n"
+                    "<b>Bug berhasil dilaporkan ke grup dukungan!</b>",
+                    reply_markup=InlineKeyboardMarkup(
+                        [[InlineKeyboardButton("Tutup", callback_data="close_data")]]
+                    ),
+                )
             else:
                 await msg.reply_text("ID pesan tidak ditemukan dalam objek pesan yang dikembalikan.")
-
-            await msg.reply_text(
-                f"<b>Laporan Bug: {bugs}</b>\n\n"
-                "<b>Bug berhasil dilaporkan ke grup dukungan!</b>",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("Tutup", callback_data="close_data")]]
-                ),
-            )
         else:
             await msg.reply_text("<b>Tidak ada bug untuk dilaporkan!</b>")
 
@@ -105,7 +103,7 @@ async def reply_bug(_, query: CallbackQuery):
         await query.answer("Anda tidak memiliki hak untuk membalas pesan ini.", show_alert=True)
     else:
         # Ambil ID pesan bug yang benar dari MongoDB
-        bug_message_id = await get_latest_bug_message_id()  # Gunakan await
+        bug_message_id = get_latest_bug_message_id()
         if bug_message_id:
             try:
                 await app.send_message(
