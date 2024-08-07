@@ -6,6 +6,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, 
 from config import OWNER_ID as owner_id
 from YukkiMusic import app
 
+# Fungsi untuk mendapatkan konten pesan setelah perintah
 def content(msg: Message) -> [None, str]:
     text_to_return = msg.text
     if text_to_return and " " in text_to_return:
