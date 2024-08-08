@@ -10,7 +10,6 @@ LOG_GRP = -1001665425160  # ID grup admin
 
 # Dictionary to store user waiting for response
 waiting_for_response = {}
-responses = {}
 bug_reports = {}
 
 @app.on_message(filters.photo & filters.private)
@@ -84,11 +83,13 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
     # Simpan ID pengguna yang menunggu balasan
     waiting_for_response[admin_id] = user_id
 
-    button = [[InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]]
+    # Kirimkan pesan ke grup admin meminta balasan
     await client.send_message(
-        admin_id,
-        "Silahkan Kirimkan Balasan Anda di grup ini:",
-        reply_markup=InlineKeyboardMarkup(button)
+        LOG_GRP,
+        f"Admin {admin_id} siap menjawab laporan bug dari pengguna {user_id}. Kirimkan balasan di sini:",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]
+        ])
     )
 
     # Hapus pesan tombol "Jawab"
@@ -105,13 +106,11 @@ async def handle_admin_response(client, message):
             f"Balasan dari admin: {message.text}"
         )
 
-        # Simpan balasan di log admin
-        responses[user_id] = message.text
-
-        await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
-
         # Hapus entri dari dictionary
         del bug_reports[message.reply_to_message.message_id]
+
+        # Acknowledge admin
+        await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
 
 @app.on_callback_query(filters.regex("batal"))
 async def handle_cancel(client, callback_query: CallbackQuery):
