@@ -8,20 +8,22 @@ import pytz
 
 LOG_GRP = -1001665425160  # ID grup admin
 
-# Dictionary to store user waiting for response
-waiting_for_response = {}
+# Dictionary to store the user who reported the bug and their message ID
+bug_reports = {}
 
 @app.on_message(filters.photo & filters.private)
 async def handle_bug_report(client, message):
     if message.caption and "#BUG" in message.caption:
         caption = message.caption
-        # Kirim laporan bug ke grup admin
+        # Save the report to track the message ID and the user ID
+        bug_reports[message.message_id] = message.from_user.id
+        # Send the bug report to the admin group
         await client.send_photo(
             chat_id=LOG_GRP,
             photo=message.photo.file_id,
             caption=caption,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.from_user.id}")]
+                [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.message_id}")]
             ])
         )
 
@@ -54,60 +56,56 @@ async def bug_command(client, message):
 **Waktu: ** **{current_time}**"""
 
     # Kirim laporan bug ke grup admin
-    await client.send_message(
+    message_sent = await client.send_message(
         chat_id=LOG_GRP,
         text=bug_report,
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {user_id}")]
+            [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.message_id}")]
         ])
     )
+
+    # Save the message ID to track which message the admin will be replying to
+    bug_reports[message_sent.message_id] = user_id
 
     await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
 @app.on_callback_query(filters.regex("jawab_pesan"))
 async def handle_bug_reply(client, callback_query: CallbackQuery):
-    admin_id = callback_query.from_user.id
-    user_id = int(callback_query.data.split()[1])
+    message_id = int(callback_query.data.split()[1])
+    user_id = bug_reports.get(message_id)
+    
+    if not user_id:
+        await callback_query.answer("Pengguna tidak ditemukan.")
+        return
+    
+    await callback_query.answer("Balasan akan dikirimkan ke pengguna.")
+    await callback_query.message.edit("Admin, kirimkan balasan di sini:")
 
-    # Simpan ID pengguna yang menunggu balasan
-    waiting_for_response[admin_id] = user_id
+    # Store the message ID to track which message is being replied to
+    waiting_for_response[callback_query.message.message_id] = user_id
 
-    button = [[InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]]
-    await client.send_message(
-        user_id,
-        "Silahkan Kirimkan Balasan Anda.",
-        reply_markup=InlineKeyboardMarkup(button)
-    )
+@app.on_message(filters.chat(LOG_GRP))
+async def handle_admin_response(client, message):
+    if message.reply_to_message and message.reply_to_message.message_id in waiting_for_response:
+        user_id = waiting_for_response[message.reply_to_message.message_id]
 
-    await callback_query.message.delete()
-
-@app.on_message(filters.private)
-async def handle_user_response(client, message):
-    user_id = message.from_user.id
-
-    if user_id in waiting_for_response:
-        admin_id = [key for key, value in waiting_for_response.items() if value == user_id][0]
-        del waiting_for_response[admin_id]
-
-        # Kirim balasan ke grup admin
-        await client.send_message(
-            LOG_GRP,
-            f"Balasan dari pengguna {user_id}: {message.text}",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("Jawab Lagi", callback_data=f"jawab_pesan {user_id}")]
-            ])
-        )
-
+        # Send the reply to the user who reported the bug
         await client.send_message(
             user_id,
-            "✅ Pesan Anda telah dikirim ke admin, silahkan tunggu balasannya."
+            f"Balasan dari admin:\n{message.text}"
         )
+
+        # Confirm the reply to the admin
+        await message.reply("✅ Balasan telah dikirim ke pengguna.")
+
+        # Remove the message ID from waiting_for_response
+        del waiting_for_response[message.reply_to_message.message_id]
 
 @app.on_callback_query(filters.regex("batal"))
 async def handle_cancel(client, callback_query: CallbackQuery):
-    admin_id = int(callback_query.data.split()[1])
-    if admin_id in waiting_for_response:
-        user_id = waiting_for_response[admin_id]
-        del waiting_for_response[admin_id]
+    message_id = int(callback_query.data.split()[1])
+    if message_id in waiting_for_response:
+        user_id = waiting_for_response[message_id]
+        del waiting_for_response[message_id]
         await client.send_message(user_id, "❌ Pembatalan permintaan.")
     await callback_query.message.delete()
