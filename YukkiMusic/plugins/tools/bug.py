@@ -27,8 +27,10 @@ async def handle_bug_report(client, message):
             ])
         )
 
-        # Simpan informasi laporan bug
-        bug_reports[sent_message.message_id] = message.from_user.id
+        # Verifikasi bahwa `sent_message` adalah objek `Message` dengan atribut `message_id`
+        if hasattr(sent_message, 'message_id'):
+            # Simpan informasi laporan bug
+            bug_reports[sent_message.message_id] = message.from_user.id
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -67,8 +69,10 @@ async def bug_command(client, message):
         ])
     )
 
-    # Simpan informasi laporan bug
-    bug_reports[sent_message.message_id] = user_id
+    # Verifikasi bahwa `sent_message` adalah objek `Message` dengan atribut `message_id`
+    if hasattr(sent_message, 'message_id'):
+        # Simpan informasi laporan bug
+        bug_reports[sent_message.message_id] = user_id
 
     await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -83,10 +87,11 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
     button = [[InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]]
     await client.send_message(
         admin_id,
-        "Silahkan Kirimkan Balasan Anda ke pengguna ini:",
+        "Silahkan Kirimkan Balasan Anda di grup ini:",
         reply_markup=InlineKeyboardMarkup(button)
     )
 
+    # Hapus pesan tombol "Jawab"
     await callback_query.message.delete()
 
 @app.on_message(filters.chat(LOG_GRP) & filters.reply)
