@@ -97,23 +97,29 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
 
 @app.on_message(filters.chat(LOG_GRP) & filters.reply)
 async def handle_admin_response(client, message):
-    if message.reply_to_message and message.reply_to_message.message_id in bug_reports:
-        user_id = bug_reports[message.reply_to_message.message_id]
+    try:
+        if message.reply_to_message and hasattr(message.reply_to_message, 'message_id'):
+            reply_message_id = message.reply_to_message.message_id
+            if reply_message_id in bug_reports:
+                user_id = bug_reports[reply_message_id]
 
-        # Kirim balasan ke pengguna
-        await client.send_message(
-            user_id,
-            f"Balasan dari admin: {message.text}"
-        )
+                # Kirim balasan ke pengguna
+                await client.send_message(
+                    user_id,
+                    f"Balasan dari admin: {message.text}"
+                )
+                print(f"Balasan terkirim ke pengguna {user_id}: {message.text}")
 
-        # Hapus entri dari dictionary
-        del bug_reports[message.reply_to_message.message_id]
-        # Hapus entri dari waiting_for_response jika ada
-        waiting_for_response.pop(message.from_user.id, None)
+                # Hapus entri dari dictionary
+                del bug_reports[reply_message_id]
+                waiting_for_response.pop(message.from_user.id, None)
 
-        # Acknowledge admin
-        await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
-        print(f"Admin response sent: user_id={user_id}, admin_id={message.from_user.id}")
+                # Acknowledge admin
+                await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
+        else:
+            print(f"Pesan balasan tidak valid: {message.reply_to_message}")
+    except Exception as e:
+        print(f"Error saat mengirim balasan: {e}")
 
 @app.on_callback_query(filters.regex("batal"))
 async def handle_cancel(client, callback_query: CallbackQuery):
