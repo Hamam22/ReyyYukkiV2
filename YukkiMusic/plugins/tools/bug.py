@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
@@ -7,8 +8,7 @@ from config import OWNER_ID as owner_id
 from YukkiMusic import app
 import pytz
 
-
-LOG_GRP =  -1001665425160 # ID grup admin
+LOG_GRP = -1001665425160  # ID grup admin
 
 @app.on_message(filters.photo & filters.private)
 async def handle_bug_report(client, message):
@@ -72,11 +72,15 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
 
     try:
         button = [[InlineKeyboardButton("Batal", callback_data=f"batal {user_id}")]]
-        pesan = await client.ask(
+        await client.send_message(
             user_id,
             "Silahkan Kirimkan Balasan Anda.",
-            reply_markup=InlineKeyboardMarkup(button),
-            timeout=60,
+            reply_markup=InlineKeyboardMarkup(button)
+        )
+        response = await client.ask(
+            user_id,
+            "Kirimkan balasan Anda:",
+            timeout=60
         )
 
         await client.send_message(
@@ -99,9 +103,10 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
             ],
         ]
 
-    await pesan.copy(
+    await client.send_message(
         target_user_id,
-        reply_markup=InlineKeyboardMarkup(buttons),
+        response.text,
+        reply_markup=InlineKeyboardMarkup(buttons)
     )
 
 @app.on_callback_query(filters.regex("batal"))
