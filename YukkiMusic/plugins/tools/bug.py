@@ -26,10 +26,8 @@ async def handle_bug_report(client, message):
             ])
         )
 
-        # Simpan informasi laporan bug
-        if hasattr(sent_message, 'message_id'):
-            bug_reports[sent_message.message_id] = message.from_user.id
-            print(f"Bug report stored: message_id={sent_message.message_id}, user_id={message.from_user.id}")
+        # Simpan ID pesan yang diterima untuk referensi balasan
+        bug_reports[sent_message.message_id] = message.from_user.id
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -68,10 +66,8 @@ async def bug_command(client, message):
         ])
     )
 
-    # Simpan informasi laporan bug
-    if hasattr(sent_message, 'message_id'):
-        bug_reports[sent_message.message_id] = user_id
-        print(f"Bug report stored: message_id={sent_message.message_id}, user_id={user_id}")
+    # Simpan ID pesan yang diterima untuk referensi balasan
+    bug_reports[sent_message.message_id] = user_id
 
     await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -83,26 +79,23 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
     # Simpan ID pengguna yang menunggu balasan
     waiting_for_response[admin_id] = user_id
 
-    # Kirimkan pesan ke grup admin meminta balasan
+    button = [[InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]]
     await client.send_message(
-        LOG_GRP,
-        f"Admin {admin_id} siap menjawab laporan bug dari pengguna {user_id}. Kirimkan balasan di sini:",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]
-        ])
+        admin_id,
+        "Silahkan Kirimkan Balasan Anda ke pengguna ini:",
+        reply_markup=InlineKeyboardMarkup(button)
     )
 
-    # Hapus pesan tombol "Jawab"
     await callback_query.message.delete()
 
 @app.on_message(filters.chat(LOG_GRP) & filters.reply)
 async def handle_admin_response(client, message):
     try:
-        if message.reply_to_message and hasattr(message.reply_to_message, 'message_id'):
+        if message.reply_to_message:
             reply_message_id = message.reply_to_message.message_id
             if reply_message_id in bug_reports:
                 user_id = bug_reports[reply_message_id]
-
+                
                 # Kirim balasan ke pengguna
                 await client.send_message(
                     user_id,
@@ -116,8 +109,10 @@ async def handle_admin_response(client, message):
 
                 # Acknowledge admin
                 await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
+            else:
+                print(f"ID pesan balasan tidak ditemukan di bug_reports: {reply_message_id}")
         else:
-            print(f"Pesan balasan tidak valid: {message.reply_to_message}")
+            print("Pesan balasan tidak valid: Tidak ada pesan yang di-reply")
     except Exception as e:
         print(f"Error saat mengirim balasan: {e}")
 
@@ -128,5 +123,4 @@ async def handle_cancel(client, callback_query: CallbackQuery):
         user_id = waiting_for_response[admin_id]
         del waiting_for_response[admin_id]
         await client.send_message(user_id, "❌ Pembatalan permintaan.")
-        print(f"Request cancelled: user_id={user_id}, admin_id={admin_id}")
     await callback_query.message.delete()
