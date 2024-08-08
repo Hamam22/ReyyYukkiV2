@@ -10,15 +10,14 @@ LOG_GRP = -1001665425160  # ID grup admin
 
 # Dictionary to store the user who reported the bug and their message ID
 bug_reports = {}
+waiting_for_response = {}
 
 @app.on_message(filters.photo & filters.private)
 async def handle_bug_report(client, message):
     if message.caption and "#BUG" in message.caption:
         caption = message.caption
-        # Save the report to track the message ID and the user ID
-        bug_reports[message.message_id] = message.from_user.id
         # Send the bug report to the admin group
-        await client.send_photo(
+        message_sent = await client.send_photo(
             chat_id=LOG_GRP,
             photo=message.photo.file_id,
             caption=caption,
@@ -26,6 +25,16 @@ async def handle_bug_report(client, message):
                 [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.message_id}")]
             ])
         )
+
+        # Debug: Check what attributes are available on the message_sent object
+        print("Message Sent:", message_sent)
+        print("Attributes:", dir(message_sent))
+
+        # Save the report to track the message ID and the user ID
+        if hasattr(message_sent, 'message_id'):
+            bug_reports[message_sent.message_id] = message.from_user.id
+        else:
+            print("Error: 'message_id' not found on the message_sent object")
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -55,17 +64,24 @@ async def bug_command(client, message):
 
 **Waktu: ** **{current_time}**"""
 
-    # Kirim laporan bug ke grup admin
+    # Send the bug report to the admin group
     message_sent = await client.send_message(
         chat_id=LOG_GRP,
         text=bug_report,
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.id}")]
+            [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.message_id}")]
         ])
     )
 
-    # Save the message ID to track which message the admin will be replying to
-    bug_reports[message_sent.message_id] = user_id
+    # Debug: Check what attributes are available on the message_sent object
+    print("Message Sent:", message_sent)
+    print("Attributes:", dir(message_sent))
+
+    # Save the report to track the message ID and the user ID
+    if hasattr(message_sent, 'message_id'):
+        bug_reports[message_sent.message_id] = user_id
+    else:
+        print("Error: 'message_id' not found on the message_sent object")
 
     await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
