@@ -26,7 +26,7 @@ async def handle_bug_report(client, message):
             ])
         )
 
-        # Use the correct attribute to get the message ID
+        # Store the message ID and user ID
         bug_reports[message_sent.id] = message.from_user.id
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
@@ -66,7 +66,7 @@ async def bug_command(client, message):
         ])
     )
 
-    # Use the correct attribute to get the message ID
+    # Store the message ID and user ID
     bug_reports[message_sent.id] = user_id
 
     await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
@@ -75,11 +75,11 @@ async def bug_command(client, message):
 async def handle_bug_reply(client, callback_query: CallbackQuery):
     message_id = int(callback_query.data.split()[1])
     user_id = bug_reports.get(message_id)
-    
-    if not user_id:
+
+    if user_id is None:
         await callback_query.answer("Pengguna tidak ditemukan.")
         return
-    
+
     await callback_query.answer("Balasan akan dikirimkan ke pengguna.")
     await callback_query.message.edit("Admin, kirimkan balasan di sini:")
 
