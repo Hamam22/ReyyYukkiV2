@@ -23,7 +23,7 @@ async def handle_bug_report(client, message):
             ])
         )
         # Simpan ID pesan laporan bug untuk referensi balasan
-        bug_reports[sent_message.message_id] = message.from_user.id
+        bug_reports[sent_message.id] = message.from_user.id
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
