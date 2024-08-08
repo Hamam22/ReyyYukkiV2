@@ -106,8 +106,6 @@ async def handle_admin_response(client, message):
 
         # Hapus entri dari dictionary
         del bug_reports[message.reply_to_message.message_id]
-        # Hapus entri dari waiting_for_response jika ada
-        waiting_for_response.pop(message.from_user.id, None)
 
         # Acknowledge admin
         await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
