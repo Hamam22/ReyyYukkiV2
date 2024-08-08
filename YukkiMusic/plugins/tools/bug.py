@@ -2,9 +2,7 @@ import asyncio
 from datetime import datetime
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
-from YukkiMusic.utils.database import get_latest_bug_message_id, save_bug_message_id
-from YukkiMusic.utils.decorators.admins import *
-from config import OWNER_ID as owner_id  # Impor OWNER_ID
+from config import OWNER_ID as owner_id
 from YukkiMusic import app
 import pytz
 
@@ -83,24 +81,25 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
             timeout=60
         )
 
+        # Kirim balasan ke grup admin
         await client.send_message(
-            user_id,
-            "✅ Pesan Anda telah dikirim ke admin, silahkan tunggu balasannya."
-        )
-        await callback_query.message.delete()
-
-        await client.send_message(
-            admin_id,
+            LOG_GRP,
             f"Balasan dari pengguna: {response.text}",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("Jawab Lagi", callback_data=f"jawab_pesan {user_id}")]
             ])
         )
 
+        await client.send_message(
+            user_id,
+            "✅ Pesan Anda telah dikirim ke admin, silahkan tunggu balasannya."
+        )
+        await callback_query.message.delete()
+
     except asyncio.TimeoutError:
         await client.send_message(user_id, "**❌ Pembatalan otomatis**")
         await client.send_message(
-            admin_id,
+            LOG_GRP,
             "❌ Pembatalan permintaan balasan dari pengguna."
         )
         await callback_query.message.delete()
