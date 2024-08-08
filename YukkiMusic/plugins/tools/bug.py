@@ -22,19 +22,12 @@ async def handle_bug_report(client, message):
             photo=message.photo.file_id,
             caption=caption,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.message_id}")]
+                [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.id}")]
             ])
         )
 
-        # Debug: Check what attributes are available on the message_sent object
-        print("Message Sent:", message_sent)
-        print("Attributes:", dir(message_sent))
-
-        # Save the report to track the message ID and the user ID
-        if hasattr(message_sent, 'message_id'):
-            bug_reports[message_sent.message_id] = message.from_user.id
-        else:
-            print("Error: 'message_id' not found on the message_sent object")
+        # Use the correct attribute to get the message ID
+        bug_reports[message_sent.id] = message.from_user.id
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -73,15 +66,8 @@ async def bug_command(client, message):
         ])
     )
 
-    # Debug: Check what attributes are available on the message_sent object
-    print("Message Sent:", message_sent)
-    print("Attributes:", dir(message_sent))
-
-    # Save the report to track the message ID and the user ID
-    if hasattr(message_sent, 'message_id'):
-        bug_reports[message_sent.message_id] = user_id
-    else:
-        print("Error: 'message_id' not found on the message_sent object")
+    # Use the correct attribute to get the message ID
+    bug_reports[message_sent.id] = user_id
 
     await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -98,12 +84,12 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
     await callback_query.message.edit("Admin, kirimkan balasan di sini:")
 
     # Store the message ID to track which message is being replied to
-    waiting_for_response[callback_query.message.message_id] = user_id
+    waiting_for_response[callback_query.message.id] = user_id
 
 @app.on_message(filters.chat(LOG_GRP))
 async def handle_admin_response(client, message):
-    if message.reply_to_message and message.reply_to_message.message_id in waiting_for_response:
-        user_id = waiting_for_response[message.reply_to_message.message_id]
+    if message.reply_to_message and message.reply_to_message.id in waiting_for_response:
+        user_id = waiting_for_response[message.reply_to_message.id]
 
         # Send the reply to the user who reported the bug
         await client.send_message(
@@ -115,7 +101,7 @@ async def handle_admin_response(client, message):
         await message.reply("✅ Balasan telah dikirim ke pengguna.")
 
         # Remove the message ID from waiting_for_response
-        del waiting_for_response[message.reply_to_message.message_id]
+        del waiting_for_response[message.reply_to_message.id]
 
 @app.on_callback_query(filters.regex("batal"))
 async def handle_cancel(client, callback_query: CallbackQuery):
