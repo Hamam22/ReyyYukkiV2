@@ -69,7 +69,7 @@ async def bug_command(client, message):
         chat_id=LOG_GRP,
         text=bug_report,
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.message_id}")]
+            [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.id}")]
         ])
     )
 
