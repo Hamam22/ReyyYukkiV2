@@ -70,11 +70,13 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
 
     try:
         button = [[InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]]
+        # Kirimkan pesan balasan kepada pengguna yang melaporkan bug
         await client.send_message(
             user_id,
             "Silahkan Kirimkan Balasan Anda.",
             reply_markup=InlineKeyboardMarkup(button)
         )
+        
         response = await client.ask(
             user_id,
             "Kirimkan balasan Anda:",
