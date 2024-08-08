@@ -26,7 +26,7 @@ async def handle_bug_report(client, message):
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
-@app.on_message(filters.command("bug") & filters.private)
+@app.on_message(filters.command("bug"))
 async def bug_command(client, message):
     if len(message.command) < 2:
         await message.reply("⚠️ Harap sertakan deskripsi bug setelah perintah.")
