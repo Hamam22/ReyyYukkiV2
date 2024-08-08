@@ -22,7 +22,7 @@ async def handle_bug_report(client, message):
             photo=message.photo.file_id,
             caption=caption,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {message.id}")]
+                [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {user_id}")]
             ])
         )
 
@@ -62,7 +62,7 @@ async def bug_command(client, message):
         chat_id=LOG_GRP,
         text=bug_report,
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {user.id}")]
+            [InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {user_id}")]
         ])
     )
 
