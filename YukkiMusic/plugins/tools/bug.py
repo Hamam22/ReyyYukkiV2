@@ -1,10 +1,10 @@
 import asyncio
 from datetime import datetime
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from YukkiMusic.utils.database import get_latest_bug_message_id, save_bug_message_id
 from YukkiMusic.utils.decorators.admins import *
-from config import OWNER_ID as owner_id
+from config import OWNER_ID as owner_id  # Impor OWNER_ID
 from YukkiMusic import app
 import pytz
 
@@ -65,13 +65,13 @@ async def bug_command(client, message):
 
 @app.on_callback_query(filters.regex("jawab_pesan"))
 async def handle_bug_reply(client, callback_query: CallbackQuery):
-    user_id = int(callback_query.from_user.id)
-    target_user_id = int(callback_query.data.split()[1])
+    admin_id = callback_query.from_user.id
+    user_id = int(callback_query.data.split()[1])
 
     full_name = f"{callback_query.from_user.first_name} {callback_query.from_user.last_name or ''}"
 
     try:
-        button = [[InlineKeyboardButton("Batal", callback_data=f"batal {user_id}")]]
+        button = [[InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]]
         await client.send_message(
             user_id,
             "Silahkan Kirimkan Balasan Anda.",
@@ -89,28 +89,24 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
         )
         await callback_query.message.delete()
 
-        buttons = [
-            [
-                InlineKeyboardButton(full_name, callback_data=f"user_{user_id}"),
-                InlineKeyboardButton("Jawab", callback_data=f"jawab_pesan {user_id}"),
-            ],
-        ]
+        await client.send_message(
+            admin_id,
+            f"Balasan dari pengguna: {response.text}",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("Jawab Lagi", callback_data=f"jawab_pesan {user_id}")]
+            ])
+        )
+
     except asyncio.TimeoutError:
         await client.send_message(user_id, "**❌ Pembatalan otomatis**")
-        buttons = [
-            [
-                InlineKeyboardButton("💌 Jawab", callback_data=f"jawab_pesan {LOG_GRP}"),
-            ],
-        ]
-
-    await client.send_message(
-        target_user_id,
-        response.text,
-        reply_markup=InlineKeyboardMarkup(buttons)
-    )
+        await client.send_message(
+            admin_id,
+            "❌ Pembatalan permintaan balasan dari pengguna."
+        )
+        await callback_query.message.delete()
 
 @app.on_callback_query(filters.regex("batal"))
 async def handle_cancel(client, callback_query: CallbackQuery):
-    user_id = int(callback_query.data.split()[1])
-    await client.send_message(user_id, "❌ Pembatalan permintaan.")
+    admin_id = int(callback_query.data.split()[1])
+    await client.send_message(admin_id, "❌ Pembatalan permintaan.")
     await callback_query.message.delete()
