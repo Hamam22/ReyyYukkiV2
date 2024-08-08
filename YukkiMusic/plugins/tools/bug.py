@@ -8,6 +8,9 @@ import pytz
 
 LOG_GRP = -1001665425160  # ID grup admin
 
+# Dictionary to store user waiting for response
+waiting_for_response = {}
+
 @app.on_message(filters.photo & filters.private)
 async def handle_bug_report(client, message):
     if message.caption and "#BUG" in message.caption:
@@ -66,27 +69,30 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
     admin_id = callback_query.from_user.id
     user_id = int(callback_query.data.split()[1])
 
-    full_name = f"{callback_query.from_user.first_name} {callback_query.from_user.last_name or ''}"
+    # Simpan ID pengguna yang menunggu balasan
+    waiting_for_response[admin_id] = user_id
 
-    try:
-        button = [[InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]]
-        # Kirimkan pesan balasan kepada pengguna yang melaporkan bug
-        await client.send_message(
-            user_id,
-            "Silahkan Kirimkan Balasan Anda.",
-            reply_markup=InlineKeyboardMarkup(button)
-        )
-        
-        response = await client.ask(
-            user_id,
-            "Kirimkan balasan Anda:",
-            timeout=60
-        )
+    button = [[InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]]
+    await client.send_message(
+        user_id,
+        "Silahkan Kirimkan Balasan Anda.",
+        reply_markup=InlineKeyboardMarkup(button)
+    )
+
+    await callback_query.message.delete()
+
+@app.on_message(filters.private)
+async def handle_user_response(client, message):
+    user_id = message.from_user.id
+
+    if user_id in waiting_for_response:
+        admin_id = [key for key, value in waiting_for_response.items() if value == user_id][0]
+        del waiting_for_response[admin_id]
 
         # Kirim balasan ke grup admin
         await client.send_message(
             LOG_GRP,
-            f"Balasan dari pengguna: {response.text}",
+            f"Balasan dari pengguna {user_id}: {message.text}",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("Jawab Lagi", callback_data=f"jawab_pesan {user_id}")]
             ])
@@ -96,18 +102,12 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
             user_id,
             "✅ Pesan Anda telah dikirim ke admin, silahkan tunggu balasannya."
         )
-        await callback_query.message.delete()
-
-    except asyncio.TimeoutError:
-        await client.send_message(user_id, "**❌ Pembatalan otomatis**")
-        await client.send_message(
-            LOG_GRP,
-            "❌ Pembatalan permintaan balasan dari pengguna."
-        )
-        await callback_query.message.delete()
 
 @app.on_callback_query(filters.regex("batal"))
 async def handle_cancel(client, callback_query: CallbackQuery):
     admin_id = int(callback_query.data.split()[1])
-    await client.send_message(admin_id, "❌ Pembatalan permintaan.")
+    if admin_id in waiting_for_response:
+        user_id = waiting_for_response[admin_id]
+        del waiting_for_response[admin_id]
+        await client.send_message(user_id, "❌ Pembatalan permintaan.")
     await callback_query.message.delete()
