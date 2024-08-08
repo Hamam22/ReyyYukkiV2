@@ -29,6 +29,7 @@ async def handle_bug_report(client, message):
         # Simpan informasi laporan bug
         if hasattr(sent_message, 'message_id'):
             bug_reports[sent_message.message_id] = message.from_user.id
+            print(f"Bug report stored: message_id={sent_message.message_id}, user_id={message.from_user.id}")
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -70,6 +71,7 @@ async def bug_command(client, message):
     # Simpan informasi laporan bug
     if hasattr(sent_message, 'message_id'):
         bug_reports[sent_message.message_id] = user_id
+        print(f"Bug report stored: message_id={sent_message.message_id}, user_id={user_id}")
 
     await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
 
@@ -111,6 +113,7 @@ async def handle_admin_response(client, message):
 
         # Acknowledge admin
         await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
+        print(f"Admin response sent: user_id={user_id}, admin_id={message.from_user.id}")
 
 @app.on_callback_query(filters.regex("batal"))
 async def handle_cancel(client, callback_query: CallbackQuery):
@@ -119,4 +122,5 @@ async def handle_cancel(client, callback_query: CallbackQuery):
         user_id = waiting_for_response[admin_id]
         del waiting_for_response[admin_id]
         await client.send_message(user_id, "❌ Pembatalan permintaan.")
+        print(f"Request cancelled: user_id={user_id}, admin_id={admin_id}")
     await callback_query.message.delete()
