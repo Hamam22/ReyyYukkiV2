@@ -124,7 +124,7 @@ async def handle_admin_response(client, message):
         if message.from_user.id == OWNER_ID:
             try:
                 # Kirim balasan ke pengguna
-                await client.send_message(
+                sent_message = await client.send_message(
                     user_id,
                     f"Balasan dari pemilik: {message.text}"
                 )
