@@ -8,7 +8,7 @@ import pytz
 import logging
 
 LOG_GRP = -1001665425160  # ID grup admin
-OWNER_ID = 843830036 # Ganti dengan ID pemilik yang sesuai
+OWNER_ID = 843830036  # Ganti dengan ID pemilik yang sesuai
 
 # Dictionary to store user waiting for response
 waiting_for_response = {}
