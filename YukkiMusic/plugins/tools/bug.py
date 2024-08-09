@@ -8,6 +8,7 @@ import pytz
 import logging
 
 LOG_GRP = -1001665425160  # ID grup admin
+OWNER_ID = 843830036
 
 # Dictionary to store user waiting for response
 waiting_for_response = {}
@@ -33,6 +34,7 @@ async def handle_bug_report(client, message):
             # Simpan informasi laporan bug
             if hasattr(sent_message, 'message_id'):
                 bug_reports[sent_message.message_id] = message.from_user.id
+                logging.info(f"Bug report sent: {sent_message.message_id} -> {message.from_user.id}")
 
             await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
         except Exception as e:
@@ -78,6 +80,7 @@ async def bug_command(client, message):
         # Simpan informasi laporan bug
         if hasattr(sent_message, 'message_id'):
             bug_reports[sent_message.message_id] = user_id
+            logging.info(f"Bug report sent: {sent_message.message_id} -> {user_id}")
 
         await message.reply("✅ Laporan bug Anda telah dikirim ke admin, tunggu balasan.")
     except Exception as e:
@@ -89,45 +92,56 @@ async def handle_bug_reply(client, callback_query: CallbackQuery):
     admin_id = callback_query.from_user.id
     user_id = int(callback_query.data.split()[1])
 
-    # Simpan ID pengguna yang menunggu balasan
-    waiting_for_response[admin_id] = user_id
+    # Simpan ID pengguna yang menunggu balasan jika yang menjawab adalah owner
+    if admin_id == OWNER_ID:
+        waiting_for_response[admin_id] = user_id
+        logging.info(f"Owner {admin_id} ready to respond to user {user_id}")
 
-    try:
-        # Kirimkan pesan ke grup admin meminta balasan
-        await client.send_message(
-            LOG_GRP,
-            f"Admin {admin_id} siap menjawab laporan bug dari pengguna {user_id}. Kirimkan balasan di sini:",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]
-            ])
-        )
+        try:
+            # Kirimkan pesan ke grup admin meminta balasan
+            await client.send_message(
+                LOG_GRP,
+                f"Pemilik {admin_id} siap menjawab laporan bug dari pengguna {user_id}. Kirimkan balasan di sini:",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("Batal", callback_data=f"batal {admin_id}")]
+                ])
+            )
 
-        # Hapus pesan tombol "Jawab"
-        await callback_query.message.delete()
-    except Exception as e:
-        logging.error(f"Error handling bug reply: {e}")
-        await callback_query.message.reply("❌ Terjadi kesalahan saat memproses balasan.")
+            # Hapus pesan tombol "Jawab"
+            await callback_query.message.delete()
+        except Exception as e:
+            logging.error(f"Error handling bug reply: {e}")
+            await callback_query.message.reply("❌ Terjadi kesalahan saat memproses balasan.")
+    else:
+        await callback_query.message.reply("❌ Hanya pemilik yang dapat menjawab laporan bug.")
 
 @app.on_message(filters.chat(LOG_GRP) & filters.reply)
 async def handle_admin_response(client, message):
     if message.reply_to_message and message.reply_to_message.message_id in bug_reports:
         user_id = bug_reports[message.reply_to_message.message_id]
 
-        try:
-            # Kirim balasan ke pengguna
-            await client.send_message(
-                user_id,
-                f"Balasan dari admin: {message.text}"
-            )
+        # Pastikan hanya owner yang dapat mengirim balasan
+        if message.from_user.id == OWNER_ID:
+            try:
+                # Kirim balasan ke pengguna
+                await client.send_message(
+                    user_id,
+                    f"Balasan dari pemilik: {message.text}"
+                )
+                logging.info(f"Response sent to user {user_id}: {message.text}")
 
-            # Hapus entri dari dictionary
-            del bug_reports[message.reply_to_message.message_id]
+                # Hapus entri dari dictionary
+                del bug_reports[message.reply_to_message.message_id]
 
-            # Acknowledge admin
-            await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
-        except Exception as e:
-            logging.error(f"Error sending admin response: {e}")
-            await message.reply("❌ Terjadi kesalahan saat mengirim balasan.")
+                # Acknowledge pemilik
+                await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
+            except Exception as e:
+                logging.error(f"Error sending admin response: {e}")
+                await message.reply("❌ Terjadi kesalahan saat mengirim balasan.")
+        else:
+            await message.reply("❌ Hanya pemilik yang dapat mengirim balasan.")
+    else:
+        await message.reply("❌ Tidak dapat menemukan laporan bug yang relevan.")
 
 @app.on_callback_query(filters.regex("batal"))
 async def handle_cancel(client, callback_query: CallbackQuery):
@@ -137,6 +151,7 @@ async def handle_cancel(client, callback_query: CallbackQuery):
         del waiting_for_response[admin_id]
         try:
             await client.send_message(user_id, "❌ Pembatalan permintaan.")
+            logging.info(f"Cancellation message sent to user {user_id}")
         except Exception as e:
             logging.error(f"Error sending cancel message: {e}")
     await callback_query.message.delete()
