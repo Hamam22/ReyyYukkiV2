@@ -14,7 +14,7 @@ OWNER_ID = 843830036  # Ganti dengan ID pemilik yang sesuai
 waiting_for_response = {}
 bug_reports = {}
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 
 @app.on_message(filters.photo & filters.private)
 async def handle_bug_report(client, message):
@@ -137,7 +137,7 @@ async def handle_admin_response(client, message):
                 await message.reply("✅ Pesan Anda telah dikirim ke pengguna. Terima kasih!")
             except Exception as e:
                 logging.error(f"Error sending admin response: {e}")
-                await message.reply("❌ Terjadi kesalahan saat mengirim balasan.")
+                await message.reply(f"❌ Terjadi kesalahan saat mengirim balasan: {e}")
         else:
             await message.reply("❌ Hanya pemilik yang dapat mengirim balasan.")
     else:
